@@ -1,0 +1,41 @@
+README: Phrase Nets Analysis Backend
+
+---
+
+### Dependências Necessárias
+
+To run the code, you must install the following Python packages:
+
+FastAPI and Uvicorn are the web framework and server, respectively, that create the REST API. Install both with:
+pip install fastapi uvicorn
+
+python-multipart is mandatory for FastAPI to be able to process file uploads and form data (Form, File/UploadFile parameters):
+pip install python-multipart
+
+Stanza (Stanford NLP) is the robust NLP library used for "Syntactic Linking," providing syntactic dependency analysis, lemmatization, and POS-tagging in English.
+Install it with: pip install stanza
+**Attention:** After installation, execute the command to download the language model:
+python -c "import stanza; stanza.download('en')"
+
+NetworkX is essential for graph manipulation. It is used to build the initial network, apply "Filtering," and perform "Edge Compression":
+pip install networkx
+
+PyPDF2 is the tool used to extract text from PDF files:
+pip install pypdf2
+
+---
+
+### 📁 File Structure and Functionality
+The application is divided into three files to ensure modularity and clarity:
+
+1.  main.py (API and Initialization): This is the application's entry point. It defines the FastAPI server and the main route "/analyze".
+    It orchestrates the process: it receives the file upload or text snippet, validates the linking parameters (`linking_type` and `pattern`), handles input exceptions, and
+    calls the main analysis function. It also contains the logic to start the Uvicorn server on port 8000.
+
+2.  phrase_net_core.py (Core Logic): This is the "brain" of the analysis. It implements the three phases of the project:
+    1. Linking where it offers the choice between "_orthographic_linking" or "`_syntactic_linking" (which uses Stanza for syntactic analysis);
+    2. Network Filtering, which reduces the graph to the most relevant nodes; and
+    3. Edge Compression, which simplifies the visualization by grouping topologically equivalent nodes.
+
+3.  utils.py (Utilities): This module assists with data input and output. Its main function, "`extract_text_from_source", reads input data streams,
+    whether from a ".txt" file or by performing the conversion of the content of a ".pdf" file to raw text, making it usable by the "phrase_net_core.py" module.
