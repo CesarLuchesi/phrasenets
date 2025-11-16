@@ -1,7 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
-import * as d3 from "d3";
-import "./GraphVisualization.css";
-import { getAnalysisText } from "../utils/api";
+import React, { useEffect, useRef, useState } from 'react';
+import * as d3 from 'd3';
+import { getAnalysisText } from '../utils/api';
+import './GraphVisualization.css';
 
 function GraphVisualization({ data, loading, error, successMessage }) {
   const svgRef = useRef(null);
@@ -25,7 +25,7 @@ function GraphVisualization({ data, loading, error, successMessage }) {
       const result = await getAnalysisText();
       setAnalysisText(result.text);
     } catch (err) {
-      console.error("Erro ao buscar texto:", err);
+      console.error('Erro ao buscar texto:', err);
     } finally {
       setLoadingText(false);
     }
@@ -38,157 +38,190 @@ function GraphVisualization({ data, loading, error, successMessage }) {
     const width = svg.node().clientWidth;
     const height = svg.node().clientHeight;
 
-    // Clear previous
     svg.selectAll("*").remove();
 
-    // Create group for zoom/pan
-    const g = svg.append("g");
+    const g = svg.append('g');
 
-    // Setup zoom behavior
-    const zoomBehavior = d3.zoom().on("zoom", (event) => {
-      g.attr("transform", event.transform);
+    const zoomBehavior = d3.zoom().on('zoom', (event) => {
+      g.attr('transform', event.transform);
       setZoom(event.transform.k);
     });
 
     svg.call(zoomBehavior);
 
-    // Prepare data
-
-    const nodes = data.nodes.map((n, i) => ({
-      ...n,
-      id: n.id || `node-${i}`,
-      x: Math.random() * width,
-      y: Math.random() * height,
-    }));
+    // 🆕 PREPARAR DADOS COM CÁLCULO CORRETO
+    const nodes = data.nodes.map((n, i) => {
+      const inDegree = Math.max(1, n.inDegree || 1);
+      const outDegree = n.outDegree || 0;
+      const ratio = outDegree / inDegree;
+      
+      return {
+        ...n,
+        id: n.id || `node-${i}`,
+        x: Math.random() * width,
+        y: Math.random() * height,
+        inDegree,
+        outDegree,
+        ratio,
+      };
+    });
 
     const edges = data.edges || [];
 
-    // Create simulation
+    // Criar simulação
     const simulation = d3
       .forceSimulation(nodes)
-      .force(
-        "link",
-        d3
-          .forceLink(edges)
-          .id((d) => d.id)
-          .distance(100)
+      .force('link', d3.forceLink(edges)
+        .id((d) => d.id)
+        .distance((d) => {
+          const weight = d.weight || 1;
+          return 80 + weight * 20;
+        })
+        .strength(0.5)
       )
-      .force("charge", d3.forceManyBody().strength(-300))
-      .force("collide", d3.forceCollide().radius(50))
-      .force("center", d3.forceCenter(width / 2, height / 2));
+      .force('charge', d3.forceManyBody().strength(-250))
+      .force('collide', d3.forceCollide().radius(40))
+      .force('center', d3.forceCenter(width / 2, height / 2));
 
-    // Draw edges
+    // 🆕 DEFINIR ESCALA DE CORES AZUL (como no artigo)
+    const colorScale = d3.scaleLinear()
+      .domain([0, 1, 3])
+      .range(['#99CCFF', '#3366CC', '#003366'])
+      .clamp(true);
+
+    // Adicionar marcadores de seta (MENORES)
+    svg.append('defs').append('marker')
+      .attr('id', 'arrowhead')
+      .attr('markerWidth', 8)
+      .attr('markerHeight', 8)
+      .attr('refX', 8)
+      .attr('refY', 3)
+      .attr('orient', 'auto')
+      .append('polygon')
+      .attr('points', '0 0, 8 3, 0 6')
+      .attr('fill', '#999999');
+
+    svg.append('defs').append('marker')
+      .attr('id', 'arrowhead-hover')
+      .attr('markerWidth', 8)
+      .attr('markerHeight', 8)
+      .attr('refX', 8)
+      .attr('refY', 3)
+      .attr('orient', 'auto')
+      .append('polygon')
+      .attr('points', '0 0, 8 3, 0 6')
+      .attr('fill', '#333333');
+
+    // Desenhar arestas (ESPESSURA REDUZIDA)
     const edgeElements = g
-      .selectAll("line")
+      .selectAll('line.edge')
       .data(edges)
       .enter()
-      .append("line")
-      .attr("class", (d) => {
-        const sourceId = d.source.id || d.source;
-        const targetId = d.target.id || d.target;
-        return `edge edge-${sourceId}-${targetId}`;
+      .append('line')
+      .attr('class', 'edge')
+      .attr('stroke', '#cccccc')
+      .attr('stroke-width', (d) => {
+        const weight = Math.max(1, d.weight || 1);
+        return Math.max(0.5, Math.min(3, weight * 0.5));
       })
-      .attr("stroke", "#ccc")
-      .attr("stroke-width", (d) =>
-        Math.max(1, Math.min(8, (d.weight || 1) * 2))
-      )
-      .attr("marker-end", "url(#arrowhead)")
-      .on("mouseenter", function (event, d) {
+      .attr('marker-end', 'url(#arrowhead)')
+      .attr('opacity', 0.6)
+      .on('mouseenter', function (event, d) {
         setHoveredEdge(d);
         d3.select(this)
-          .attr("stroke", "#666")
-          .attr("stroke-width", (d) =>
-            Math.max(2, Math.min(10, (d.weight || 1) * 2))
-          );
+          .attr('stroke', '#333333')
+          .attr('stroke-width', (d) => {
+            const weight = Math.max(1, d.weight || 1);
+            return Math.max(1, Math.min(4, weight * 0.7));
+          })
+          .attr('marker-end', 'url(#arrowhead-hover)')
+          .attr('opacity', 1);
       })
-      .on("mouseleave", function () {
+      .on('mouseleave', function () {
         setHoveredEdge(null);
         d3.select(this)
-          .attr("stroke", "#ccc")
-          .attr("stroke-width", (d) =>
-            Math.max(1, Math.min(8, (d.weight || 1) * 2))
-          );
+          .attr('stroke', '#cccccc')
+          .attr('stroke-width', (d) => {
+            const weight = Math.max(1, d.weight || 1);
+            return Math.max(0.5, Math.min(3, weight * 0.5));
+          })
+          .attr('marker-end', 'url(#arrowhead)')
+          .attr('opacity', 0.6);
       });
 
-    // Add arrowhead marker
-    svg
-      .append("defs")
-      .append("marker")
-      .attr("id", "arrowhead")
-      .attr("markerWidth", 10)
-      .attr("markerHeight", 10)
-      .attr("refX", 9)
-      .attr("refY", 3)
-      .attr("orient", "auto")
-      .append("polygon")
-      .attr("points", "0 0, 10 3, 0 6")
-      .attr("fill", "#ccc");
-
-    // Draw nodes
+    // Desenhar nós
     const nodeElements = g
-      .selectAll(".node")
+      .selectAll('g.node')
       .data(nodes)
       .enter()
-      .append("g")
-      .attr("class", "node")
-      .call(
-        d3
-          .drag()
-          .on("start", dragStarted)
-          .on("drag", dragged)
-          .on("end", dragEnded)
+      .append('g')
+      .attr('class', 'node')
+      .call(d3.drag()
+        .on('start', dragStarted)
+        .on('drag', dragged)
+        .on('end', dragEnded)
       );
 
+    // 🆕 RENDERIZAR TEXTO COM ESCALA DE TONS
     nodeElements
-      .append("text")
-      .attr("text-anchor", "middle")
-      .attr("dominant-baseline", "central")
+      .append('text')
+      .attr('text-anchor', 'middle')
+      .attr('dominant-baseline', 'central')
+      .attr('dy', '0.35em')
       .text((d) => d.label || d.id)
-      .attr("font-size", (d) => {
-        const freq = d.frequency || 5;
-        return Math.max(12, Math.min(48, freq * 2));
+      .attr('font-size', (d) => {
+        const freq = Math.max(1, d.frequency || 3);
+        return Math.max(11, Math.min(42, freq * 1.8));
       })
-      .attr("font-weight", "bold")
-      .attr("letter-spacing", "-1px")
-      .attr("fill", (d) => {
-        const ratio = (d.outDegree || 0) / Math.max(1, d.inDegree || 1);
-        const hsl = d3.hsl(210, 1, 0.5 - Math.log(ratio + 1) * 0.1);
-        return hsl.toString();
+      .attr('font-weight', 900)
+      .attr('letter-spacing', '-0.5px')
+      .attr('fill', (d) => {
+        const color = colorScale(Math.log(d.ratio + 1));
+        return color;
       })
-      .on("mouseenter", function (event, d) {
+      .attr('pointer-events', 'none')
+      .attr('text-rendering', 'geometricPrecision')
+      .on('mouseenter', function (event, d) {
         setHoveredNode(d);
         d3.select(this)
-          .attr("font-size", (d) =>
-            Math.max(14, Math.min(50, (d.frequency || 5) * 2.2))
-          )
-          .attr("fill", "#003366");
+          .attr('font-size', (d) => {
+            const freq = Math.max(1, d.frequency || 3);
+            return Math.max(13, Math.min(48, freq * 2.0));
+          })
+          .attr('fill', '#000000')
+          .attr('font-weight', 900)
+          .attr('filter', 'drop-shadow(0px 0px 4px rgba(51, 102, 204, 0.5))');
       })
-      .on("mouseleave", function (event, d) {
+      .on('mouseleave', function (event, d) {
         setHoveredNode(null);
         d3.select(this)
-          .attr("font-size", (d) =>
-            Math.max(12, Math.min(48, (d.frequency || 5) * 2))
-          )
-          .attr("fill", (d) => {
-            const ratio = (d.outDegree || 0) / Math.max(1, d.inDegree || 1);
-            const hsl = d3.hsl(210, 1, 0.5 - Math.log(ratio + 1) * 0.1);
-            return hsl.toString();
-          });
+          .attr('font-size', (d) => {
+            const freq = Math.max(1, d.frequency || 3);
+            return Math.max(11, Math.min(42, freq * 1.8));
+          })
+          .attr('fill', (d) => {
+            const color = colorScale(Math.log(d.ratio + 1));
+            return color;
+          })
+          .attr('font-weight', 900)
+          .attr('filter', 'none');
       })
-      .on("click", function (event, d) {
+      .on('click', function (event, d) {
         event.stopPropagation();
         setSelectedNode(d.id === selectedNode ? null : d.id);
       });
 
-    // Update positions
-    simulation.on("tick", () => {
+    // Atualizar posições
+    simulation.on('tick', () => {
       edgeElements
-        .attr("x1", (d) => d.source.x || 0)
-        .attr("y1", (d) => d.source.y || 0)
-        .attr("x2", (d) => d.target.x || 0)
-        .attr("y2", (d) => d.target.y || 0);
+        .attr('x1', (d) => d.source.x || 0)
+        .attr('y1', (d) => d.source.y || 0)
+        .attr('x2', (d) => d.target.x || 0)
+        .attr('y2', (d) => d.target.y || 0);
 
-      nodeElements.attr("transform", (d) => `translate(${d.x},${d.y})`);
+      nodeElements
+        .attr('transform', (d) => `translate(${d.x},${d.y})`)
+        .style('pointer-events', 'auto');
     });
 
     function dragStarted(event, d) {
@@ -208,15 +241,6 @@ function GraphVisualization({ data, loading, error, successMessage }) {
       d.fy = null;
     }
 
-    // Reset zoom button
-    const resetZoom = () => {
-      svg
-        .transition()
-        .duration(750)
-        .call(zoomBehavior.transform, d3.zoomIdentity.translate(0, 0).scale(1));
-      setZoom(1);
-    };
-
     return () => {
       simulation.stop();
     };
@@ -225,21 +249,43 @@ function GraphVisualization({ data, loading, error, successMessage }) {
   return (
     <div className="graph-visualization">
       <div className="graph-header">
-        <h2>📊 Visualização de Rede</h2>
+        <div className="header-content">
+          <h2>📊 Visualização de Rede</h2>
+          <div className="color-legend">
+            <span className="legend-item">
+              <span className="legend-color" style={{ backgroundColor: '#99CCFF' }}></span>
+              Entrada
+            </span>
+            <span className="legend-item">
+              <span className="legend-color" style={{ backgroundColor: '#3366CC' }}></span>
+              Balanceado
+            </span>
+            <span className="legend-item">
+              <span className="legend-color" style={{ backgroundColor: '#003366' }}></span>
+              Saída
+            </span>
+          </div>
+        </div>
         {data && (
-          <button
+          <button 
             className="btn-show-text"
             onClick={() => setShowTextPanel(!showTextPanel)}
           >
-            {showTextPanel ? "🔼 Ocultar Texto" : "📄 Ver Texto"}
+            {showTextPanel ? '🔼 Ocultar Texto' : '📄 Ver Texto'}
           </button>
         )}
       </div>
 
-      {error && <div className="error-message">❌ {error}</div>}
+      {error && (
+        <div className="error-message">
+          ❌ {error}
+        </div>
+      )}
 
       {successMessage && !error && (
-        <div className="success-message">✅ {successMessage}</div>
+        <div className="success-message">
+          ✅ {successMessage}
+        </div>
       )}
 
       {loading && (
@@ -257,15 +303,15 @@ function GraphVisualization({ data, loading, error, successMessage }) {
 
       {data && !loading && (
         <>
-          <svg
-            ref={svgRef}
+          <svg 
+            ref={svgRef} 
             className="graph-svg"
             style={{
-              width: "100%",
-              height: "100%",
+              width: '100%',
+              height: '100%'
             }}
           ></svg>
-
+          
           <div className="graph-stats">
             <div className="stat">
               <strong>Nós:</strong> {data.node_count || 0}
@@ -275,12 +321,11 @@ function GraphVisualization({ data, loading, error, successMessage }) {
             </div>
           </div>
 
-          {/* 🆕 PAINEL DE TEXTO */}
           {showTextPanel && (
             <div className="text-panel">
               <div className="text-panel-header">
                 <h3>📝 Texto Analisado</h3>
-                <button
+                <button 
                   className="close-btn"
                   onClick={() => setShowTextPanel(false)}
                 >
@@ -302,9 +347,10 @@ function GraphVisualization({ data, loading, error, successMessage }) {
           {hoveredNode && (
             <div className="tooltip">
               <strong>{hoveredNode.label || hoveredNode.id}</strong>
-              <div>Frequência: {hoveredNode.frequency || "N/A"}</div>
+              <div>Frequência: {hoveredNode.frequency || 'N/A'}</div>
               <div>In-degree: {hoveredNode.inDegree || 0}</div>
               <div>Out-degree: {hoveredNode.outDegree || 0}</div>
+              <div>Razão: {(hoveredNode.ratio || 0).toFixed(2)}</div>
             </div>
           )}
 
