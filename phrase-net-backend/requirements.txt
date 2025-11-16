@@ -1,0 +1,12 @@
+# requirements.txt
+# Web Framework and Server Dependencies
+fastapi
+uvicorn
+
+# Data Processing Dependencies (File Handling and Forms)
+python-multipart
+pypdf2
+
+# Analysis Dependencies (NLP and Graphs)
+networkx
+stanza
