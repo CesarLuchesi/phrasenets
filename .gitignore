@@ -1,1 +1,3 @@
 phrase-net-backend/venv
+phrase-net-backend/__pycache__
+frontEnd/node_modules
