@@ -4,6 +4,14 @@ README: Phrase Nets Analysis Backend
 
 ### Dependências Necessárias
 
+To run the python enviroment you need to run
+
+pip install -r requirements.txt
+python -c "import stanza; stanza.download('en')"
+
+
+*if you prefer create a virtual enviroment*
+
 To run the code, you must install the following Python packages:
 
 FastAPI and Uvicorn are the web framework and server, respectively, that create the REST API. Install both with:
