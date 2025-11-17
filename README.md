@@ -9,6 +9,7 @@ To run the enviroment you need to run
 
 pip install -r requirements.txt
 python -c "import stanza; stanza.download('en')"
+npm install
 yarn dev
 
 *if you prefer create a virtual enviroment*
@@ -106,7 +107,7 @@ The required dependencies for this project are listed in the 'requirements' file
 
 **1. Open your terminal** (e.g., PowerShell, Command Prompt, or VS Code Terminal).
 **2. Run the installation command:**
-pip install -r requirements.txt
+npm install
 
 
 #### STEP 2: EXECUTE THE APPLICATION
