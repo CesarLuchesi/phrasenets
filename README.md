@@ -56,7 +56,7 @@ The application is divided into three files to ensure modularity and clarity:
 This guide details the steps to start your FastAPI server and test the core functionalities (Syntactic Linking with Stanza and PDF/Text Analysis) 
 using the Swagger UI documentation.
 
-# 1. ENVIRONMENT SETUP AND SERVER STARTUP
+### 1. ENVIRONMENT SETUP AND SERVER STARTUP
 
 1.  Install Dependencies: Ensure all required libraries (FastAPI, Uvicorn, python-multipart, Stanza, NetworkX, PyPDF2) are installed.
     pip install fastapi uvicorn python-multipart networkx pypdf2 stanza
@@ -66,7 +66,7 @@ using the Swagger UI documentation.
     python main.py
     Verify the output shows: "Uvicorn running on http://127.0.0.1:8000"
 
-# 2. TESTING ANALYSIS VIA SWAGGER UI
+### 2. TESTING ANALYSIS VIA SWAGGER UI
 
 The easiest way to test both the PDF upload/conversion and the Syntactic Linking logic is through the interactive documentation.
 
@@ -96,11 +96,11 @@ The easiest way to test both the PDF upload/conversion and the Syntactic Linking
 
     
 
-# 3. RUN THE APPLICATION 
+### 3. RUN THE APPLICATION 
 
 To successfully execute this application in development mode, you need to use the 'yarn' package manager.
 
-# STEP 1: INSTALL DEPENDENCIES (YARN)
+#### STEP 1: INSTALL DEPENDENCIES (YARN)
 
 The required dependencies for this project are listed in the 'requirements' file.
 
@@ -109,7 +109,7 @@ The required dependencies for this project are listed in the 'requirements' file
 pip install -r requirements.txt
 
 
-# STEP 2: EXECUTE THE APPLICATION
+#### STEP 2: EXECUTE THE APPLICATION
 
 Once the installation is complete, you can start the development server using the 'dev' script defined in the project configuration.
 
