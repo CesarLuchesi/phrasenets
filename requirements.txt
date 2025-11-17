@@ -10,3 +10,7 @@ pypdf2
 # Analysis Dependencies (NLP and Graphs)
 networkx
 stanza
+
+# Frontend settings 
+npm install
+npm install -g yarn

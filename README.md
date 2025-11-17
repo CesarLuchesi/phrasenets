@@ -1,2 +1,120 @@
 # phrasenets
 Software visualization with a Phrase Nets Technique
+
+---
+
+### Dependencies
+
+To run the enviroment you need to run
+
+pip install -r requirements.txt
+python -c "import stanza; stanza.download('en')"
+yarn dev
+
+*if you prefer create a virtual enviroment*
+
+To run the code, you must install the following Python packages:
+
+FastAPI and Uvicorn are the web framework and server, respectively, that create the REST API. Install both with:
+pip install fastapi uvicorn
+
+python-multipart is mandatory for FastAPI to be able to process file uploads and form data (Form, File/UploadFile parameters):
+pip install python-multipart
+
+Stanza (Stanford NLP) is the robust NLP library used for "Syntactic Linking," providing syntactic dependency analysis, lemmatization, and POS-tagging in English.
+Install it with: pip install stanza
+**Attention:** After installation, execute the command to download the language model:
+python -c "import stanza; stanza.download('en')"
+
+NetworkX is essential for graph manipulation. It is used to build the initial network, apply "Filtering," and perform "Edge Compression":
+pip install networkx
+
+PyPDF2 is the tool used to extract text from PDF files:
+pip install pypdf2
+
+---
+
+###  File Structure and Functionality for Backend
+The application is divided into three files to ensure modularity and clarity:
+
+1.  main.py (API and Initialization): This is the application's entry point. It defines the FastAPI server and the main route "/analyze".
+    It orchestrates the process: it receives the file upload or text snippet, validates the linking parameters (`linking_type` and `pattern`), handles input exceptions, and
+    calls the main analysis function. It also contains the logic to start the Uvicorn server on port 8000.
+
+2.  phrase_net_core.py (Core Logic): This is the "brain" of the analysis. It implements the three phases of the project:
+    1. Linking where it offers the choice between "_orthographic_linking" or "`_syntactic_linking" (which uses Stanza for syntactic analysis);
+    2. Network Filtering, which reduces the graph to the most relevant nodes; and
+    3. Edge Compression, which simplifies the visualization by grouping topologically equivalent nodes.
+
+3.  utils.py (Utilities): This module assists with data input and output. Its main function, "`extract_text_from_source", reads input data streams,
+    whether from a ".txt" file or by performing the conversion of the content of a ".pdf" file to raw text, making it usable by the "phrase_net_core.py" module.
+    
+---
+
+### HOW-TO GUIDE: Executing Phrase Net (English)
+
+This guide details the steps to start your FastAPI server and test the core functionalities (Syntactic Linking with Stanza and PDF/Text Analysis) 
+using the Swagger UI documentation.
+
+# 1. ENVIRONMENT SETUP AND SERVER STARTUP
+
+1.  Install Dependencies: Ensure all required libraries (FastAPI, Uvicorn, python-multipart, Stanza, NetworkX, PyPDF2) are installed.
+    pip install fastapi uvicorn python-multipart networkx pypdf2 stanza
+    python -c "import stanza; stanza.download('en')"
+
+2.  Start the Server: Navigate to your project directory and run the main script.
+    python main.py
+    Verify the output shows: "Uvicorn running on http://127.0.0.1:8000"
+
+# 2. TESTING ANALYSIS VIA SWAGGER UI
+
+The easiest way to test both the PDF upload/conversion and the Syntactic Linking logic is through the interactive documentation.
+
+1.  Access Docs: Open your web browser and go to the Swagger UI:
+    [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+
+2.  Locate Endpoint: Find and expand the "POST /analyze"* route. Click "Try it out" to enable input fields.
+
+3.  Test Case 1: Syntactic Linking (Text Snippet)
+    * file: Leave blank.
+    * text_content: Enter a sample English sentence (e.g., "The quick brown fox jumps over the lazy dog.")
+    * linking_type: Set to `syntactic`.
+    * pattern: Leave blank.
+    * max_nodes: Set to 20.
+    * Click "Execute".
+    * Verification: The Response Body should return a JSON object with `nodes` and `edges` showing grammatical relationships extracted by Stanza.
+
+4.  Test Case 2: PDF Conversion and Analysis
+    * file: Click "Choose File" and select a small PDF file.
+    * text_content: Leave blank.
+    * linking_type: Set to "syntactic" or "orthographic".
+    * pattern (if Orthographic): If using "orthographic", provide a valid regex pattern (e.g., "(\w+)\s+(and)\s+(\w+)"). If using "syntactic", leave blank.
+    * max_nodes: Set to 20.
+    * Click "Execute".
+    * Verification: The Response Code must be "200". The Response Body should show the Phrase Net JSON, confirming that "utils.py" successfully extracted the text from 
+    the PDF and the core logic processed it. If extraction fails, you will see a "422 Unprocessable Entity" error.
+
+    
+
+# 3. RUN THE APPLICATION 
+
+To successfully execute this application in development mode, you need to use the 'yarn' package manager.
+
+# STEP 1: INSTALL DEPENDENCIES (YARN)
+
+The required dependencies for this project are listed in the 'requirements' file.
+
+**1. Open your terminal** (e.g., PowerShell, Command Prompt, or VS Code Terminal).
+**2. Run the installation command:**
+pip install -r requirements.txt
+
+
+# STEP 2: EXECUTE THE APPLICATION
+
+Once the installation is complete, you can start the development server using the 'dev' script defined in the project configuration.
+
+**1. Ensure you are in the root directory.**
+**2. Run the start command:**
+yarn dev
+
+The application should now be running, and the terminal will usually provide the local address (e.g.,http://localhost:5173/) where you can access it in your browser.
