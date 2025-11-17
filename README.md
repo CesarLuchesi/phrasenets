@@ -1,6 +1,10 @@
 # phrasenets
 Software visualization with a Phrase Nets Technique
 
+
+Phrase Nets is a novel technique for generating visual overviews of unstructured text. It functions by creating a network graph where **words act as the nodes** and **edges represent a specific relationship** defined by the user, offering a higher level of analysis than looking at individual terms. These linking relations can be established either through rapid **Orthographic Linking** (simple pattern matching, like regular expressions) or through more detailed **Syntactic Linking** (based on grammatical structure). To ensure the resulting map is readable and uncluttered, the technique utilizes **Edge Compression**, which simplifies the graph by collapsing sets of topologically equivalent nodes into single supernodes. By allowing users to choose which relations to visualize, Phrase Nets provide distinct and illuminating perspectives on the key concepts and connections present within a document or a collection of texts.
+
+
 ---
 
 ### Dependencies
