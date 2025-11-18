@@ -100,26 +100,24 @@ The easiest way to test both the PDF upload/conversion and the Syntactic Linking
     the PDF and the core logic processed it. If extraction fails, you will see a "422 Unprocessable Entity" error.
 
     
-
 ### 3. RUN THE APPLICATION 
 
 To successfully execute this application in development mode, you need to use the 'yarn' package manager.
 
 #### STEP 1: INSTALL DEPENDENCIES (YARN)
 
-The required dependencies for this project are listed in the 'requirements' file.
-
-**1. Open your terminal** (e.g., PowerShell, Command Prompt, or VS Code Terminal).
-**2. Run the installation command:**
+*1. Open your terminal* (e.g., PowerShell, Command Prompt, or VS Code Terminal).
+*2. Run the installation command:*
 npm install
-
 
 #### STEP 2: EXECUTE THE APPLICATION
 
 Once the installation is complete, you can start the development server using the 'dev' script defined in the project configuration.
 
-**1. Ensure you are in the root directory.**
-**2. Run the start command:**
+*1. Ensure you are in the root directory.*
+*2. Run the start command:*
 yarn dev
 
 The application should now be running, and the terminal will usually provide the local address (e.g.,http://localhost:5173/) where you can access it in your browser.
+
+**Attention:** To execute the application, the backend and frontend server must be running at the same time.
