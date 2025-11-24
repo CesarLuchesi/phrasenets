@@ -4,7 +4,7 @@ const API_URL = "/api";
 
 export async function analyzeText(formData) {
   try {
-    const response = await fetch(`${API_URL}/analyze`, {
+    const response = await fetch(`${BACKEND_URL}/analyze`, {
       method: "POST",
       body: formData,
     });
@@ -23,7 +23,7 @@ export async function analyzeText(formData) {
 
 export async function getAnalysisText() {
   try {
-    const response = await fetch(`${API_URL}/analysis/text`, {
+    const response = await fetch(`${BACKEND_URL}/analysis/text`, {
       method: "GET",
     });
 
