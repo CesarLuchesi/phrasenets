@@ -107,7 +107,7 @@ yarn dev
 
 -----
 
-## 🧪 Testing with Swagger UI
+## Testing with Swagger UI
 
 The interactive Swagger UI documentation is the easiest way to test the core backend functionalities (PDF extraction and Syntactic Linking) before integrating with the frontend.
 
