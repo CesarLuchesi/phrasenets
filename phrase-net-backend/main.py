@@ -18,7 +18,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:5173", "http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -56,7 +56,7 @@ def validate_linking_params(
     return {"linking_type": linking_type, "pattern": pattern}
 
 
-@app.get("/api/analysis/text")
+@app.get("/analysis/text")
 async def get_analysis_text():
     try:
         if hasattr(get_analysis_text, "last_text"):
@@ -78,7 +78,7 @@ async def health_check():
     return {"status": "ok"}
 
 
-@app.post("/api/analyze")
+@app.post("/analyze")
 async def analyze_text(
     file: Optional[UploadFile] = File(
         None, description="PDF or TXT file for analysis."
@@ -133,14 +133,6 @@ async def analyze_text(
         raise HTTPException(status_code=500, detail=f"NLP dependency error: {e}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing Phrase Net: {e}")
-
-
-if os.path.exists("static"):
-    app.mount("/", StaticFiles(directory="static", html=True), name="static")
-
-    @app.get("/")
-    async def read_root():
-        return FileResponse("static/index.html")
 
 
 if __name__ == "__main__":
