@@ -1,9 +1,9 @@
 # Build Frontend
 FROM node:18-alpine as frontend-builder
-WORKDIR /app/frontend
-COPY frontend/package.json frontend/package-lock.json ./
+WORKDIR /app/frontEnd
+COPY frontEnd/package.json frontEnd/package-lock.json ./
 RUN npm install
-COPY frontend/ .
+COPY frontEnd/ .
 RUN npm run build
 
 # Setup Backend
@@ -12,14 +12,14 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y build-essential && rm -rf /var/lib/apt/lists/*
 
-COPY backend/requirements.txt .
+COPY phrase-net-backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 RUN python -c "import stanza; stanza.download('en')"
 
-COPY backend/ .
+COPY phrase-net-backend/ .
 
 # Copiar frontend buildado
-COPY --from=frontend-builder /app/frontend/dist ./static
+COPY --from=frontend-builder /app/frontEnd/dist ./static
 
 EXPOSE 8000
 
