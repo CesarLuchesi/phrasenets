@@ -1,7 +1,7 @@
 # Build Frontend
 FROM node:18-alpine as frontend-builder
 WORKDIR /app/frontEnd
-COPY frontEnd/package.json frontEnd/package-lock.json ./
+COPY frontEnd/package.json ./
 RUN npm install
 COPY frontEnd/ .
 RUN npm run build
