@@ -2,6 +2,8 @@
 
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from typing import Optional
 from phrase_net_core import run_phrase_net_analysis
 from utils import extract_text_from_source
@@ -16,7 +18,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -54,7 +56,7 @@ def validate_linking_params(
     return {"linking_type": linking_type, "pattern": pattern}
 
 
-@app.get("/analysis/text")
+@app.get("/api/analysis/text")
 async def get_analysis_text():
     try:
         if hasattr(get_analysis_text, "last_text"):
@@ -71,7 +73,12 @@ async def get_analysis_text():
         raise HTTPException(status_code=500, detail=f"Erro ao recuperar texto: {e}")
 
 
-@app.post("/analyze")
+@app.get("/api/health")
+async def health_check():
+    return {"status": "ok"}
+
+
+@app.post("/api/analyze")
 async def analyze_text(
     file: Optional[UploadFile] = File(
         None, description="PDF or TXT file for analysis."
@@ -126,6 +133,14 @@ async def analyze_text(
         raise HTTPException(status_code=500, detail=f"NLP dependency error: {e}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing Phrase Net: {e}")
+
+
+if os.path.exists("static"):
+    app.mount("/", StaticFiles(directory="static", html=True), name="static")
+
+    @app.get("/")
+    async def read_root():
+        return FileResponse("static/index.html")
 
 
 if __name__ == "__main__":
