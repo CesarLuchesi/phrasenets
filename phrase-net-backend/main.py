@@ -7,6 +7,7 @@ from phrase_net_core import run_phrase_net_analysis
 from utils import extract_text_from_source
 import io
 import uvicorn
+import json
 
 app = FastAPI(
     title="Phrase Net Backend",
@@ -21,14 +22,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- 1. Parameter Validation Function (FastAPI Depends) ---
-
 
 def validate_linking_params(
     linking_type: str = Form(
         "orthographic", description="Linking method: 'orthographic' or 'syntactic'."
     ),
-    # CORRECTION: Using r"" to define the regex description string
     pattern: Optional[str] = Form(
         None,
         description=r"Regex Pattern (required for Orthographic Linking). Ex: r'(\w+)\s+(and)\s+(\w+)'",
@@ -56,9 +54,6 @@ def validate_linking_params(
     return {"linking_type": linking_type, "pattern": pattern}
 
 
-# --- 2. Main API Route ---
-
-
 @app.get("/analysis/text")
 async def get_analysis_text():
     try:
@@ -78,15 +73,22 @@ async def get_analysis_text():
 
 @app.post("/analyze")
 async def analyze_text(
-    file: Optional[UploadFile] = File(None, description="PDF or TXT file for analysis."),
-    text_content: Optional[str] = Form(None, description="Direct text snippet for analysis."),
+    file: Optional[UploadFile] = File(
+        None, description="PDF or TXT file for analysis."
+    ),
+    text_content: Optional[str] = Form(
+        None, description="Direct text snippet for analysis."
+    ),
     linking_params: dict = Depends(validate_linking_params),
-    max_nodes: int = Form(100, description="Maximum number of nodes to retain after filtering (Section 3.2).")
+    max_nodes: int = Form(
+        100,
+        description="Maximum number of nodes to retain after filtering (Section 3.2).",
+    ),
+    hidden_words: Optional[str] = Form("[]"),
 ):
-    
+
     raw_text = ""
-    
-    # 1. Obtaining the Text Source
+
     if text_content:
         raw_text = text_content
     elif file:
@@ -96,30 +98,34 @@ async def analyze_text(
         except IOError as e:
             raise HTTPException(status_code=422, detail=str(e))
     else:
-        raise HTTPException(status_code=400, detail="No file or text snippet was provided.")
+        raise HTTPException(
+            status_code=400, detail="No file or text snippet was provided."
+        )
 
     if not raw_text.strip():
         raise HTTPException(status_code=400, detail="The extracted text is empty.")
-
-    # 🆕 ARMAZENE O TEXTO
     get_analysis_text.last_text = raw_text
 
-    # 2. Executing Phrase Net Analysis
+    try:
+        stopwords_list = json.loads(hidden_words) if hidden_words else []
+    except:
+        stopwords_list = []
+
     try:
         result = run_phrase_net_analysis(
             raw_text=raw_text,
-            linking_type=linking_params['linking_type'],
-            pattern=linking_params['pattern'],
-            max_nodes=max_nodes
+            linking_type=linking_params["linking_type"],
+            pattern=linking_params["pattern"],
+            max_nodes=max_nodes,
+            stopwords=stopwords_list,
         )
-        
+
         return {"status": "success", "analysis_result": result}
-        
+
     except RuntimeError as e:
         raise HTTPException(status_code=500, detail=f"NLP dependency error: {e}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing Phrase Net: {e}")
-
 
 
 if __name__ == "__main__":

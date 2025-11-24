@@ -1,174 +1,232 @@
-import React, { useState } from 'react';
-import './InputPanel.css';
+import React, { useState } from "react";
+import "./InputPanel.css";
+
+const DEFAULT_STOPWORDS = [
+  "the",
+  "a",
+  "an",
+  "and",
+  "or",
+  "but",
+  "in",
+  "on",
+  "at",
+  "to",
+  "for",
+  "of",
+  "with",
+  "by",
+  "from",
+  "as",
+  "is",
+  "was",
+  "are",
+  "were",
+  "been",
+  "be",
+  "have",
+  "has",
+  "had",
+  "do",
+  "does",
+  "did",
+  "will",
+  "would",
+  "should",
+  "could",
+  "may",
+  "might",
+  "can",
+  "must",
+  "this",
+  "that",
+  "these",
+  "those",
+  "i",
+  "you",
+  "he",
+  "she",
+  "it",
+  "we",
+  "they",
+  "what",
+  "which",
+  "who",
+  "when",
+  "where",
+  "why",
+  "how",
+  "all",
+  "each",
+  "every",
+  "both",
+  "few",
+  "more",
+  "most",
+  "other",
+  "some",
+  "such",
+  "only",
+  "same",
+  "so",
+  "than",
+  "too",
+  "very",
+  "just",
+  "not",
+  "no",
+];
 
 const PRESET_PATTERNS = [
-  { name: 'X and Y', pattern: '(\\w+)\\s+(and)\\s+(\\w+)' },
+  { name: "X and Y", pattern: "(\\w+)\\s+(and)\\s+(\\w+)" },
   { name: "X 's Y", pattern: "(\\w+)'s\\s+(\\w+)" },
-  { name: 'X of Y', pattern: '(\\w+)\\s+(of)\\s+(\\w+)' },
-  { name: 'X is Y', pattern: '(\\w+)\\s+(is)\\s+(\\w+)' },
-  { name: 'X at Y', pattern: '(\\w+)\\s+(at)\\s+(\\w+)' },
-  { name: 'X to Y', pattern: '(\\w+)\\s+(to)\\s+(\\w+)' },
-  { name: 'X with Y', pattern: '(\\w+)\\s+(with)\\s+(\\w+)' },
+  { name: "X of Y", pattern: "(\\w+)\\s+(of)\\s+(\\w+)" },
+  { name: "X is Y", pattern: "(\\w+)\\s+(is)\\s+(\\w+)" },
+  { name: "X at Y", pattern: "(\\w+)\\s+(at)\\s+(\\w+)" },
+  { name: "X to Y", pattern: "(\\w+)\\s+(to)\\s+(\\w+)" },
+  { name: "X with Y", pattern: "(\\w+)\\s+(with)\\s+(\\w+)" },
 ];
 
 const SAMPLE_TEXT = `The quick brown fox jumps over the lazy dog. 
 The brown dog was quick and lazy. 
 A quick and fast fox jumped over the fence.
 The lazy dog and quick fox played together.
-The fox was quick, brown, and clever.`;
+The fox was quick,brown, and clever.`;
 
 function InputPanel({ onAnalyze, loading, onClear }) {
-  const [textInput, setTextInput] = useState('');
+  const [textInput, setTextInput] = useState("");
   const [file, setFile] = useState(null);
-  const [linkingType, setLinkingType] = useState('orthographic');
-  const [selectedPattern, setSelectedPattern] = useState(PRESET_PATTERNS[0].pattern);
-  const [customPattern, setCustomPattern] = useState('');
+  const [linkingType, setLinkingType] = useState("orthographic");
+  const [pattern, setPattern] = useState("(\\w+)\\s+(and)\\s+(\\w+)");
   const [maxNodes, setMaxNodes] = useState(100);
-  const [activeTab, setActiveTab] = useState('text');
 
-  const pattern = customPattern || selectedPattern;
+  const [hiddenWords, setHiddenWords] = useState([]);
+  const [wordFilterInput, setWordFilterInput] = useState("");
+  const [hideDefaultStopwords, setHideDefaultStopwords] = useState(false);
+
+  const handleAddHiddenWord = () => {
+    const word = wordFilterInput.trim().toLowerCase();
+    if (word && !hiddenWords.includes(word)) {
+      setHiddenWords([...hiddenWords, word]);
+      setWordFilterInput("");
+    }
+  };
+
+  const handleRemoveHiddenWord = (word) => {
+    setHiddenWords(hiddenWords.filter((w) => w !== word));
+  };
+
+  const handleWordFilterKeyPress = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddHiddenWord();
+    }
+  };
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
-      setTextInput('');
+      setTextInput("");
     }
-  };
-
-  const handleTextChange = (e) => {
-    setTextInput(e.target.value);
-    setFile(null);
   };
 
   const handleLoadSample = () => {
     setTextInput(SAMPLE_TEXT);
     setFile(null);
-    setActiveTab('text');
   };
 
   const handleProcess = async () => {
     if (!textInput && !file) {
-      alert('Por favor, forneça texto ou arquivo');
-      return;
-    }
-
-    if (linkingType === 'orthographic' && !pattern) {
-      alert('Por favor, defina um padrão regex');
+      alert("Por favor, forneça texto ou arquivo");
       return;
     }
 
     const formData = new FormData();
 
     if (file) {
-      formData.append('file', file);
+      formData.append("file", file);
     } else if (textInput) {
-      formData.append('text_content', textInput);
+      formData.append("text_content", textInput);
     }
 
-    formData.append('linking_type', linkingType);
-    if (linkingType === 'orthographic') {
-      formData.append('pattern', pattern);
+    formData.append("linking_type", linkingType);
+    if (linkingType === "orthographic") {
+      formData.append("pattern", pattern);
     }
-    formData.append('max_nodes', maxNodes);
+    formData.append("max_nodes", maxNodes);
+
+    const allHiddenWords = hideDefaultStopwords
+      ? [...DEFAULT_STOPWORDS, ...hiddenWords]
+      : hiddenWords;
+
+    formData.append("hidden_words", JSON.stringify(allHiddenWords));
 
     onAnalyze(formData);
   };
 
   const handleClearAll = () => {
-    setTextInput('');
+    setTextInput("");
     setFile(null);
-    setLinkingType('orthographic');
-    setSelectedPattern(PRESET_PATTERNS[0].pattern);
-    setCustomPattern('');
+    setLinkingType("orthographic");
+    setPattern("(\\w+)\\s+(and)\\s+(\\w+)");
     setMaxNodes(100);
-    setActiveTab('text');
+    setHiddenWords([]);
+    setWordFilterInput("");
+    setHideDefaultStopwords(false);
     onClear();
   };
 
   return (
     <div className="input-panel">
-      <div className="panel-header">
-        <h1>🔗 Phrase Net Analyzer</h1>
-        <p>Análise de padrões textuais</p>
-      </div>
+      <h1> Phrase Nets Analyzer</h1>
 
-      {/* TAB NAVIGATION */}
-      <div className="tab-navigation">
-        <button
-          className={`tab-button ${activeTab === 'text' ? 'active' : ''}`}
-          onClick={() => setActiveTab('text')}
-        >
-          Texto
-        </button>
-        <button
-          className={`tab-button ${activeTab === 'file' ? 'active' : ''}`}
-          onClick={() => setActiveTab('file')}
-        >
-          Arquivo
-        </button>
-      </div>
-
-      {/* TEXT INPUT */}
-      {activeTab === 'text' && (
-        <div className="input-section">
-          <label>Colar Texto</label>
-          <textarea
-            value={textInput}
-            onChange={handleTextChange}
-            placeholder="Cole seu texto aqui..."
-            rows={6}
-          />
-          <div className="char-count">
-            {textInput.length} / 5000 caracteres
-          </div>
-          <button className="btn-secondary" onClick={handleLoadSample}>
-            Carregar Texto de Exemplo
-          </button>
-        </div>
-      )}
-
-      {/* FILE INPUT */}
-      {activeTab === 'file' && (
-        <div className="input-section">
-          <label>Upload de Arquivo</label>
-          <div className="file-drop-zone">
+      <div className="input-section">
+        <label>📝 File or Text</label>
+        <textarea
+          value={textInput}
+          onChange={(e) => {
+            setTextInput(e.target.value);
+            setFile(null);
+          }}
+          placeholder="Paste your text here..."
+          className="text-input"
+          rows="6"
+        />
+        <div className="button-row">
+          <label className="btn btn-file">
+            📁 Send File
             <input
               type="file"
-              accept=".txt,.pdf"
+              accept=".pdf,.txt"
               onChange={handleFileChange}
-              id="file-input"
+              hidden
             />
-            <label htmlFor="file-input" className="drop-label">
-              Arraste arquivos aqui ou clique para selecionar
-            </label>
-          </div>
-          {file && (
-            <div className="file-info">
-              📄 {file.name} ({(file.size / 1024).toFixed(2)} KB)
-            </div>
-          )}
+          </label>
+          <button className="btn btn-secondary" onClick={handleLoadSample}>
+            📋 Load Example
+          </button>
         </div>
-      )}
+        {file && <p className="file-name">✓ File: {file.name}</p>}
+      </div>
 
-      {/* LINKING TYPE */}
       <div className="input-section">
-        <label>Tipo de Ligação</label>
+        <label>🔀 View Type</label>
         <div className="radio-group">
-          <label>
+          <label className="radio-label">
             <input
               type="radio"
               value="orthographic"
-              checked={linkingType === 'orthographic'}
+              checked={linkingType === "orthographic"}
               onChange={(e) => setLinkingType(e.target.value)}
             />
             Orthographic
           </label>
-          <label>
+          <label className="radio-label">
             <input
               type="radio"
               value="syntactic"
-              checked={linkingType === 'syntactic'}
+              checked={linkingType === "syntactic"}
               onChange={(e) => setLinkingType(e.target.value)}
             />
             Syntactic
@@ -176,63 +234,111 @@ function InputPanel({ onAnalyze, loading, onClear }) {
         </div>
       </div>
 
-      {/* PATTERN */}
-      {linkingType === 'orthographic' && (
+      {linkingType === "orthographic" && (
         <div className="input-section">
-          <label>Padrão Regex</label>
-          <select
-            value={selectedPattern}
-            onChange={(e) => {
-              setSelectedPattern(e.target.value);
-              setCustomPattern('');
-            }}
-          >
-            {PRESET_PATTERNS.map((p) => (
-              <option key={p.pattern} value={p.pattern}>
-                {p.name}
-              </option>
-            ))}
-            <option value="">--- Padrão Customizado ---</option>
-          </select>
-          {selectedPattern === '' && (
-            <input
-              type="text"
-              value={customPattern}
-              onChange={(e) => setCustomPattern(e.target.value)}
-              placeholder="Ex: (\w+)\s+(and)\s+(\w+)"
-              className="custom-pattern-input"
-            />
-          )}
+          <label>🎯 Pattern</label>
+          <div className="pattern-selector">
+            <select
+              value={pattern}
+              onChange={(e) => setPattern(e.target.value)}
+              className="pattern-dropdown"
+            >
+              {PRESET_PATTERNS.map((p) => (
+                <option key={p.name} value={p.pattern}>
+                  {p.name}
+                </option>
+              ))}
+              <option value="">Custom</option>
+            </select>
+          </div>
+          <input
+            type="text"
+            value={pattern}
+            onChange={(e) => setPattern(e.target.value)}
+            placeholder="Ex: (\\w+)\\s+(and)\\s+(\\w+)"
+            className="pattern-input"
+          />
         </div>
       )}
 
-      {/* MAX NODES */}
       <div className="input-section">
-        <label>Máximo de Nós: {maxNodes}</label>
+        <label>Max Nodes: {maxNodes}</label>
         <input
           type="range"
           min="10"
           max="500"
+          step="10"
           value={maxNodes}
           onChange={(e) => setMaxNodes(parseInt(e.target.value))}
+          className="slider"
         />
       </div>
 
-      {/* ACTION BUTTONS */}
-      <div className="button-group">
+      <div className="input-section hidden-words-section">
+        <div className="checkbox-row">
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              checked={hideDefaultStopwords}
+              onChange={(e) => setHideDefaultStopwords(e.target.checked)}
+            />
+            Use Standard Stopwords ({DEFAULT_STOPWORDS.length} words)
+          </label>
+        </div>
+
+        <div className="word-filter-input-row">
+          <input
+            type="text"
+            value={wordFilterInput}
+            onChange={(e) => setWordFilterInput(e.target.value)}
+            onKeyPress={handleWordFilterKeyPress}
+            placeholder="Type a word and press Enter"
+            className="word-filter-input"
+          />
+          <button
+            className="btn-add-hidden-word"
+            onClick={handleAddHiddenWord}
+            type="button"
+          >
+            ➕
+          </button>
+        </div>
+
+        {hiddenWords.length > 0 && (
+          <div className="hidden-words-list">
+            <div className="hidden-words-label">Custom Words:</div>
+            <div className="hidden-words-tags">
+              {hiddenWords.map((word) => (
+                <span key={word} className="hidden-word-tag">
+                  {word}
+                  <button
+                    className="remove-hidden-word"
+                    onClick={() => handleRemoveHiddenWord(word)}
+                    type="button"
+                  >
+                    ✕
+                  </button>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="action-buttons">
         <button
-          className="btn-primary"
+          className="btn btn-primary"
           onClick={handleProcess}
-          disabled={loading || (!textInput && !file)}
+          disabled={loading}
         >
-          {loading ? '⏳ Processando...' : '▶️ Processar'}
+          {loading ? "⏳ Loading..." : "🚀 Analize"}
         </button>
         <button
-          className="btn-secondary"
+          className="btn btn-secondary"
           onClick={handleClearAll}
           disabled={loading}
         >
-          🗑️ Limpar Tudo
+          🔄 Clean
         </button>
       </div>
     </div>

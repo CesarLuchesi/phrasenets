@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import InputPanel from './components/InputPanel';
-import GraphVisualization from './components/GraphVisualization';
-import { analyzeText } from './utils/api';
-import './App.css';
+import React, { useState } from "react";
+import InputPanel from "./components/InputPanel";
+import GraphVisualization from "./components/GraphVisualization";
+import { analyzeText } from "./utils/api";
+import "./App.css";
 
 function App() {
   const [graphData, setGraphData] = useState(null);
@@ -18,9 +18,9 @@ function App() {
     try {
       const result = await analyzeText(formData);
       setGraphData(result.analysis_result);
-      setSuccessMessage('Análise concluída com sucesso!');
+      setSuccessMessage("Analysis completed successfully!");
     } catch (err) {
-      setError(err.message || 'Erro ao processar análise');
+      setError(err.message || "Error processing analysis");
       setGraphData(null);
     } finally {
       setLoading(false);
@@ -35,13 +35,13 @@ function App() {
 
   return (
     <div className="app-container">
-      <InputPanel 
-        onAnalyze={handleAnalyze} 
+      <InputPanel
+        onAnalyze={handleAnalyze}
         loading={loading}
         onClear={handleClear}
       />
-      <GraphVisualization 
-        data={graphData} 
+      <GraphVisualization
+        data={graphData}
         loading={loading}
         error={error}
         successMessage={successMessage}

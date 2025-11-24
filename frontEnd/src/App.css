@@ -23,7 +23,6 @@
   }
 }
 
-/* Scrollbar personalizada */
 .app-container > *::-webkit-scrollbar {
   width: 8px;
 }
