@@ -24,7 +24,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 def validate_linking_params(
     linking_type: str = Form(
         "orthographic", description="Linking method: 'orthographic' or 'syntactic'."
