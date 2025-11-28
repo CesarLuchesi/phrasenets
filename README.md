@@ -122,20 +122,20 @@ The interactive Swagger UI documentation is the easiest way to test the core bac
 
 ### Test Case A: Syntactic Linking (Usando SpaCy Rápido)
 
-  \* `file`: Leave blank.
-  \* `text_content`: Enter a sample English sentence (e.g., "The quick brown fox jumps over the lazy dog.")
-  \* `linking_type`: Set to `syntactic`.
-  \* **`nlp_tool`**: Set to `spacy` (New Hybrid Option).
-  \* `pattern`: Leave blank.
-  \* `max_nodes`: Set to 20.
-  \* **Result:** Click **"Execute"**. The response should contain a JSON object with `nodes` and `edges` showing grammatical relationships extracted by SpaCy.
+  * `file`: Leave blank.
+  * `text_content`: Enter a sample English sentence (e.g., "The quick brown fox jumps over the lazy dog.")
+  * `linking_type`: Set to `syntactic`.
+  * **`nlp_tool`**: Set to `spacy` (New Hybrid Option).
+  * `pattern`: Leave blank.
+  * `max_nodes`: Set to 20.
+  * **Result:** Click **"Execute"**. The response should contain a JSON object with `nodes` and `edges` showing grammatical relationships extracted by SpaCy.
 
 ### Test Case B: PDF Conversion and Robust Analysis (Stanza)
 
-  \* `file`: Click **"Choose File"** and select a small PDF file.
-  \* `text_content`: Leave blank.
-  \* `linking_type`: Set to `syntactic` or `orthographic`.
-  \* **`nlp_tool`**: Set to `stanza` (Robust Dependency Analysis).
-  \* `pattern` (if Orthographic): Provide a valid regex (e.g., `(\w+)\s+(and)\s+(\w+)`). If using `syntactic`, leave blank.
-  \* `max_nodes`: Set to 20.
-  \* **Result:** Click **"Execute"**. The **Response Code** should be `200`, and the **Response Body** will show the Phrase Net JSON, confirming successful PDF text extraction and processing.
+  * `file`: Click **"Choose File"** and select a small PDF file.
+  * `text_content`: Leave blank.
+  * `linking_type`: Set to `syntactic` or `orthographic`.
+  * **`nlp_tool`**: Set to `stanza` (Robust Dependency Analysis).
+  * `pattern` (if Orthographic): Provide a valid regex (e.g., `(\w+)\s+(and)\s+(\w+)`). If using `syntactic`, leave blank.
+  * `max_nodes`: Set to 20.
+  * **Result:** Click **"Execute"**. The **Response Code** should be `200`, and the **Response Body** will show the Phrase Net JSON, confirming successful PDF text extraction and processing.
