@@ -99,6 +99,7 @@ function InputPanel({ onAnalyze, loading, onClear }) {
   const [linkingType, setLinkingType] = useState("orthographic");
   const [pattern, setPattern] = useState("(\\w+)\\s+(and)\\s+(\\w+)");
   const [maxNodes, setMaxNodes] = useState(100);
+  const [analysisType, setAnalysisType] = useState("spacy");
 
   const [hiddenWords, setHiddenWords] = useState([]);
   const [wordFilterInput, setWordFilterInput] = useState("");
@@ -151,6 +152,9 @@ function InputPanel({ onAnalyze, loading, onClear }) {
     }
 
     formData.append("linking_type", linkingType);
+    if (linkingType === "syntactic") {
+      formData.append("analysis_type", analysisType);
+    }
     if (linkingType === "orthographic") {
       formData.append("pattern", pattern);
     }
@@ -170,6 +174,7 @@ function InputPanel({ onAnalyze, loading, onClear }) {
     setFile(null);
     setLinkingType("orthographic");
     setPattern("(\\w+)\\s+(and)\\s+(\\w+)");
+    setAnalysisType("typeA");
     setMaxNodes(100);
     setHiddenWords([]);
     setWordFilterInput("");
@@ -233,6 +238,32 @@ function InputPanel({ onAnalyze, loading, onClear }) {
           </label>
         </div>
       </div>
+
+      {linkingType === "syntactic" && (
+        <div className="input-section">
+          <label>🧩 Syntactic Library</label>
+          <div className="radio-group">
+            <label className="radio-label">
+              <input
+                type="radio"
+                value="spacy"
+                checked={analysisType === "spacy"}
+                onChange={(e) => setAnalysisType(e.target.value)}
+              />
+              SpaCy
+            </label>
+            <label className="radio-label">
+              <input
+                type="radio"
+                value="stanza"
+                checked={analysisType === "stanza"}
+                onChange={(e) => setAnalysisType(e.target.value)}
+              />
+              Stanza
+            </label>
+          </div>
+        </div>
+      )}
 
       {linkingType === "orthographic" && (
         <div className="input-section">
