@@ -1,4 +1,3 @@
-# requirements.txt
 # Web Framework and Server Dependencies
 fastapi
 uvicorn
@@ -10,3 +9,5 @@ pypdf2
 # Analysis Dependencies (NLP and Graphs)
 networkx
 stanza
+spacy 
+en_core_web_sm 
